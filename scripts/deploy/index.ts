@@ -1,7 +1,7 @@
 import { NotFoundError } from "cloudflare";
 import "dotenv/config";
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   createDatabase,
@@ -336,14 +336,12 @@ const pushPagesSecret = () => {
 
     console.log(`📝 Found ${Object.keys(secrets).length} secrets to push:`, Object.keys(secrets).join(', '));
 
-    // 使用临时文件推送secrets
-    execSync(`pnpm dlx wrangler pages secret bulk ${runtimeEnvFile}`, { 
-      stdio: "inherit" 
+    execSync(`pnpm dlx wrangler pages secret bulk "${runtimeEnvFile}"`, {
+      stdio: "inherit"
     });
 
-    // 清理临时文件
     if (existsSync(runtimeEnvFile)) {
-      execSync(`rm ${runtimeEnvFile}`, { stdio: "inherit" });
+      unlinkSync(runtimeEnvFile);
     }
 
     console.log("✅ Secrets pushed successfully");
@@ -354,7 +352,7 @@ const pushPagesSecret = () => {
     const runtimeEnvFile = resolve('.env.runtime.json');
     if (existsSync(runtimeEnvFile)) {
       try {
-        execSync(`rm ${runtimeEnvFile}`, { stdio: "inherit" });
+        unlinkSync(runtimeEnvFile);
       } catch (cleanupError) {
         console.error("⚠️ Failed to cleanup temporary file:", cleanupError);
       }
